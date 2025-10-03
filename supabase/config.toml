@@ -1,1 +1,7 @@
 project_id = "ietdyalmqicbaeqewzdp"
+
+[functions.generate-hashtags]
+verify_jwt = false
+
+[functions.handle-poll-vote]
+verify_jwt = true

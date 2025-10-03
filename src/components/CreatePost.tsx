@@ -7,6 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Image, Video, BarChart3, Loader2, Sparkles, X } from 'lucide-react';
+import { 
+  textPostSchema, 
+  pollPostSchema, 
+  validateImageFile, 
+  validateVideoFile 
+} from '@/lib/validations';
 
 type PostType = 'text' | 'image' | 'video' | 'poll';
 
@@ -27,6 +33,17 @@ const CreatePost = ({ userId }: CreatePostProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file based on post type
+      const validation = postType === 'image' 
+        ? validateImageFile(file) 
+        : validateVideoFile(file);
+      
+      if (!validation.valid) {
+        toast.error(validation.error);
+        e.target.value = ''; // Reset input
+        return;
+      }
+      
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -62,6 +79,31 @@ const CreatePost = ({ userId }: CreatePostProps) => {
 
     setLoading(true);
     try {
+      // Validate based on post type
+      if (postType === 'text') {
+        const validation = textPostSchema.safeParse({ content });
+        if (!validation.success) {
+          toast.error(validation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+      } else if (postType === 'poll') {
+        const filteredOptions = pollOptions.filter(opt => opt.trim() !== '');
+        const validation = pollPostSchema.safeParse({
+          question: pollQuestion,
+          options: filteredOptions,
+        });
+        if (!validation.success) {
+          toast.error(validation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+      } else if ((postType === 'image' || postType === 'video') && !selectedFile) {
+        toast.error(`Please select a ${postType} file`);
+        setLoading(false);
+        return;
+      }
+
       let mediaUrl = '';
 
       // Upload media if exists
@@ -107,8 +149,7 @@ const CreatePost = ({ userId }: CreatePostProps) => {
       setPollOptions(['', '']);
       toast.success('Posted successfully!');
     } catch (error) {
-      toast.error('Failed to create post');
-      console.error(error);
+      toast.error('Failed to create post. Please try again.');
     } finally {
       setLoading(false);
     }

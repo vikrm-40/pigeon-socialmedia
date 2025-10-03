@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import pigeonLogo from '@/assets/pigeon-logo.jpeg';
+import { signUpSchema, signInSchema } from '@/lib/validations';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -24,6 +25,18 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        // Validate sign-in data
+        const validation = signInSchema.safeParse({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (!validation.success) {
+          toast.error(validation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -31,6 +44,19 @@ const Auth = () => {
         if (error) throw error;
         toast.success('Welcome back!');
       } else {
+        // Validate sign-up data
+        const validation = signUpSchema.safeParse({
+          email: formData.email,
+          password: formData.password,
+          username: formData.username,
+        });
+
+        if (!validation.success) {
+          toast.error(validation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -44,7 +70,8 @@ const Auth = () => {
       }
       navigate('/');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Authentication failed');
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -108,8 +135,13 @@ const Auth = () => {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
+                {!isLogin && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    At least 8 characters with uppercase, lowercase, and number
+                  </p>
+                )}
               </div>
               <Button
                 type="submit"
