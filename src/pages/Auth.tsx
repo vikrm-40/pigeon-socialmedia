@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import pigeonLogo from '@/assets/pigeon-logo.jpeg';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -55,12 +55,14 @@ const Auth = () => {
       <div className="w-full max-w-md animate-fade-up">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center animate-pulse-glow">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src={pigeonLogo} 
+              alt="Pigeon Logo" 
+              className="w-20 h-20 object-contain animate-pulse-glow"
+            />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-            Social Sphere
+            Pigeon
           </h1>
           <p className="text-muted-foreground">Connect, Share, Inspire ✨</p>
         </div>
