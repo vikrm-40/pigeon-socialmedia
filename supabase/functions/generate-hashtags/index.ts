@@ -5,6 +5,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: Track requests per IP/user
+const requestAttempts = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 20; // Max 20 hashtag generations per hour
+const RATE_WINDOW = 3600000; // 1 hour in milliseconds
+
+const checkRateLimit = (identifier: string): boolean => {
+  const now = Date.now();
+  const attempts = requestAttempts.get(identifier);
+  
+  if (!attempts || now > attempts.resetTime) {
+    requestAttempts.set(identifier, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+  
+  if (attempts.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  attempts.count++;
+  return true;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,6 +39,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Content is required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Rate limit check using content as identifier (in production, use user ID or IP)
+    const identifier = content.substring(0, 50); // Use content prefix as basic identifier
+    if (!checkRateLimit(identifier)) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 429 }
       );
     }
 

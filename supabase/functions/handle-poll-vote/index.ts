@@ -5,6 +5,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: Track votes per user
+const voteAttempts = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 10; // Max 10 votes per minute
+const RATE_WINDOW = 60000; // 1 minute in milliseconds
+
+const checkRateLimit = (userId: string): boolean => {
+  const now = Date.now();
+  const userAttempts = voteAttempts.get(userId);
+  
+  if (!userAttempts || now > userAttempts.resetTime) {
+    voteAttempts.set(userId, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+  
+  if (userAttempts.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  userAttempts.count++;
+  return true;
+};
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -33,6 +55,15 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit
+    if (!checkRateLimit(user.id)) {
+      console.log(`Rate limit exceeded for user ${user.id}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many vote attempts. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

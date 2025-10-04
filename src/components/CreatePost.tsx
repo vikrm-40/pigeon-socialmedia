@@ -13,6 +13,10 @@ import {
   validateImageFile, 
   validateVideoFile 
 } from '@/lib/validations';
+import { 
+  sanitizeText, 
+  detectSpamPatterns 
+} from '@/lib/sanitization';
 
 type PostType = 'text' | 'image' | 'video' | 'poll';
 
@@ -79,18 +83,30 @@ const CreatePost = ({ userId }: CreatePostProps) => {
 
     setLoading(true);
     try {
+      // Sanitize all text inputs
+      const sanitizedContent = sanitizeText(content);
+      const sanitizedQuestion = sanitizeText(pollQuestion);
+      const sanitizedOptions = pollOptions.map(opt => sanitizeText(opt));
+
+      // Check for spam patterns in text content
+      if (postType === 'text' && detectSpamPatterns(sanitizedContent)) {
+        toast.error('Your post contains patterns that appear spam-like. Please revise.');
+        setLoading(false);
+        return;
+      }
+
       // Validate based on post type
       if (postType === 'text') {
-        const validation = textPostSchema.safeParse({ content });
+        const validation = textPostSchema.safeParse({ content: sanitizedContent });
         if (!validation.success) {
           toast.error(validation.error.errors[0].message);
           setLoading(false);
           return;
         }
       } else if (postType === 'poll') {
-        const filteredOptions = pollOptions.filter(opt => opt.trim() !== '');
+        const filteredOptions = sanitizedOptions.filter(opt => opt.trim() !== '');
         const validation = pollPostSchema.safeParse({
-          question: pollQuestion,
+          question: sanitizedQuestion,
           options: filteredOptions,
         });
         if (!validation.success) {
@@ -127,13 +143,13 @@ const CreatePost = ({ userId }: CreatePostProps) => {
       const postData: any = {
         user_id: userId,
         post_type: postType,
-        content: postType === 'text' || postType === 'image' || postType === 'video' ? content : null,
+        content: postType === 'text' || postType === 'image' || postType === 'video' ? sanitizedContent : null,
         media_url: mediaUrl || null,
       };
 
       if (postType === 'poll') {
-        postData.poll_question = pollQuestion;
-        postData.poll_options = pollOptions.filter(opt => opt.trim());
+        postData.poll_question = sanitizedQuestion;
+        postData.poll_options = sanitizedOptions.filter(opt => opt.trim());
         postData.poll_votes = {};
       }
 
