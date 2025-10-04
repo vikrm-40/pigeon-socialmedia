@@ -41,27 +41,6 @@ export const textPostSchema = z.object({
     .max(5000, { message: 'Post content must be less than 5000 characters' }),
 });
 
-export const pollPostSchema = z.object({
-  question: z
-    .string()
-    .trim()
-    .min(1, { message: 'Poll question cannot be empty' })
-    .max(200, { message: 'Poll question must be less than 200 characters' }),
-  options: z
-    .array(
-      z.string()
-        .trim()
-        .min(1, { message: 'Poll option cannot be empty' })
-        .max(100, { message: 'Poll option must be less than 100 characters' })
-    )
-    .min(2, { message: 'Poll must have at least 2 options' })
-    .max(4, { message: 'Poll can have at most 4 options' })
-    .refine((options) => {
-      const uniqueOptions = new Set(options.map(o => o.toLowerCase()));
-      return uniqueOptions.size === options.length;
-    }, { message: 'Poll options must be unique' }),
-});
-
 // File validation
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB

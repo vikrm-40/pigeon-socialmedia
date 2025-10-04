@@ -14,9 +14,6 @@ interface PostProps {
     content: string | null;
     post_type: string;
     media_url: string | null;
-    poll_question: string | null;
-    poll_options: string[] | null;
-    poll_votes: Record<string, number> | null;
     created_at: string;
     profiles: {
       username: string;
@@ -29,7 +26,6 @@ interface PostProps {
 const Post = ({ post, currentUserId }: PostProps) => {
   const [likes, setLikes] = useState<any[]>([]);
   const [hasLiked, setHasLiked] = useState(false);
-  const [selectedPollOption, setSelectedPollOption] = useState<number | null>(null);
 
   useEffect(() => {
     fetchLikes();
@@ -76,35 +72,6 @@ const Post = ({ post, currentUserId }: PostProps) => {
     }
   };
 
-  const handleVote = async (optionIndex: number) => {
-    if (!currentUserId || selectedPollOption !== null) return;
-
-    try {
-      setSelectedPollOption(optionIndex);
-
-      const { data, error } = await supabase.functions.invoke('handle-poll-vote', {
-        body: { postId: post.id, optionIndex },
-      });
-
-      if (error) {
-        setSelectedPollOption(null);
-        toast.error(error.message || 'Failed to record vote');
-        return;
-      }
-
-      if (data?.error) {
-        setSelectedPollOption(null);
-        toast.error(data.error);
-        return;
-      }
-
-      toast.success('Vote recorded!');
-    } catch (error) {
-      setSelectedPollOption(null);
-      toast.error('Failed to record vote');
-    }
-  };
-
   const handleDelete = async () => {
     const { error } = await supabase
       .from('posts')
@@ -114,23 +81,6 @@ const Post = ({ post, currentUserId }: PostProps) => {
     if (!error) {
       toast.success('Post deleted');
     }
-  };
-
-  const getTotalVotes = () => {
-    if (!post.poll_votes) return 0;
-    return Object.values(post.poll_votes).length;
-  };
-
-  const getVotePercentage = (optionIndex: number) => {
-    const totalVotes = getTotalVotes();
-    if (totalVotes === 0) return 0;
-    const optionVotes = Object.values(post.poll_votes || {}).filter(v => v === optionIndex).length;
-    return Math.round((optionVotes / totalVotes) * 100);
-  };
-
-  const hasUserVoted = () => {
-    if (!currentUserId || !post.poll_votes) return false;
-    return post.poll_votes[currentUserId] !== undefined;
   };
 
   return (
@@ -169,41 +119,6 @@ const Post = ({ post, currentUserId }: PostProps) => {
               ) : (
                 <video src={post.media_url} controls className="w-full h-auto" />
               )}
-            </div>
-          )}
-
-          {post.post_type === 'poll' && post.poll_question && (
-            <div className="space-y-3 p-4 bg-secondary rounded-lg">
-              <p className="font-semibold">{post.poll_question}</p>
-              {post.poll_options?.map((option, index) => {
-                const percentage = getVotePercentage(index);
-                const userVotedIndex = currentUserId && post.poll_votes ? post.poll_votes[currentUserId] : null;
-                const isUserChoice = userVotedIndex === index;
-                const hasVoted = hasUserVoted();
-                
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleVote(index)}
-                    disabled={hasVoted}
-                    className="w-full text-left disabled:cursor-not-allowed"
-                  >
-                    <div className="relative p-3 bg-background rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-70">
-                      <div
-                        className="absolute inset-0 bg-gradient-primary opacity-20 rounded-lg transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                      <div className="relative flex items-center justify-between">
-                        <span className={isUserChoice ? 'font-semibold' : ''}>{option}</span>
-                        <span className="text-sm text-muted-foreground">{percentage}%</span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-              <p className="text-sm text-muted-foreground text-center">
-                {getTotalVotes()} {getTotalVotes() === 1 ? 'vote' : 'votes'}
-              </p>
             </div>
           )}
 

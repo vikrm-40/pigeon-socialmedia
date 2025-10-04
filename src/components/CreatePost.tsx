@@ -6,10 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Image, Video, BarChart3, Loader2, Sparkles, X } from 'lucide-react';
+import { Image, Video, Loader2, Sparkles, X } from 'lucide-react';
 import { 
   textPostSchema, 
-  pollPostSchema, 
   validateImageFile, 
   validateVideoFile 
 } from '@/lib/validations';
@@ -18,7 +17,7 @@ import {
   detectSpamPatterns 
 } from '@/lib/sanitization';
 
-type PostType = 'text' | 'image' | 'video' | 'poll';
+type PostType = 'text' | 'image' | 'video';
 
 interface CreatePostProps {
   userId: string;
@@ -29,8 +28,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
   const [postType, setPostType] = useState<PostType>('text');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
-  const [pollQuestion, setPollQuestion] = useState('');
-  const [pollOptions, setPollOptions] = useState(['', '']);
   const [loading, setLoading] = useState(false);
   const [generatingHashtags, setGeneratingHashtags] = useState(false);
 
@@ -85,8 +82,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
     try {
       // Sanitize all text inputs
       const sanitizedContent = sanitizeText(content);
-      const sanitizedQuestion = sanitizeText(pollQuestion);
-      const sanitizedOptions = pollOptions.map(opt => sanitizeText(opt));
 
       // Check for spam patterns in text content
       if (postType === 'text' && detectSpamPatterns(sanitizedContent)) {
@@ -98,17 +93,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
       // Validate based on post type
       if (postType === 'text') {
         const validation = textPostSchema.safeParse({ content: sanitizedContent });
-        if (!validation.success) {
-          toast.error(validation.error.errors[0].message);
-          setLoading(false);
-          return;
-        }
-      } else if (postType === 'poll') {
-        const filteredOptions = sanitizedOptions.filter(opt => opt.trim() !== '');
-        const validation = pollPostSchema.safeParse({
-          question: sanitizedQuestion,
-          options: filteredOptions,
-        });
         if (!validation.success) {
           toast.error(validation.error.errors[0].message);
           setLoading(false);
@@ -143,15 +127,9 @@ const CreatePost = ({ userId }: CreatePostProps) => {
       const postData: any = {
         user_id: userId,
         post_type: postType,
-        content: postType === 'text' || postType === 'image' || postType === 'video' ? sanitizedContent : null,
+        content: sanitizedContent || null,
         media_url: mediaUrl || null,
       };
-
-      if (postType === 'poll') {
-        postData.poll_question = sanitizedQuestion;
-        postData.poll_options = sanitizedOptions.filter(opt => opt.trim());
-        postData.poll_votes = {};
-      }
 
       const { error } = await supabase.from('posts').insert(postData);
       if (error) throw error;
@@ -161,8 +139,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
       setPostType('text');
       setSelectedFile(null);
       setPreviewUrl('');
-      setPollQuestion('');
-      setPollOptions(['', '']);
       toast.success('Posted successfully!');
     } catch (error) {
       toast.error('Failed to create post. Please try again.');
@@ -174,7 +150,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
   const isValidPost = () => {
     if (postType === 'text') return content.trim();
     if (postType === 'image' || postType === 'video') return selectedFile;
-    if (postType === 'poll') return pollQuestion.trim() && pollOptions.filter(opt => opt.trim()).length >= 2;
     return false;
   };
 
@@ -207,15 +182,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
           >
             <Video className="w-4 h-4 mr-1" />
             Video
-          </Button>
-          <Button
-            variant={postType === 'poll' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setPostType('poll')}
-            className={postType === 'poll' ? 'bg-gradient-primary' : ''}
-          >
-            <BarChart3 className="w-4 h-4 mr-1" />
-            Poll
           </Button>
         </div>
 
@@ -283,47 +249,6 @@ const CreatePost = ({ userId }: CreatePostProps) => {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {postType === 'poll' && (
-          <div className="space-y-3">
-            <Input
-              placeholder="Ask a question..."
-              value={pollQuestion}
-              onChange={(e) => setPollQuestion(e.target.value)}
-            />
-            {pollOptions.map((option, index) => (
-              <div key={index} className="flex gap-2">
-                <Input
-                  placeholder={`Option ${index + 1}`}
-                  value={option}
-                  onChange={(e) => {
-                    const newOptions = [...pollOptions];
-                    newOptions[index] = e.target.value;
-                    setPollOptions(newOptions);
-                  }}
-                />
-                {pollOptions.length > 2 && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== index))}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            {pollOptions.length < 4 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPollOptions([...pollOptions, ''])}
-              >
-                Add Option
-              </Button>
-            )}
           </div>
         )}
 

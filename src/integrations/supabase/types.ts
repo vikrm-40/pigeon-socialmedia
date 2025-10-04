@@ -95,9 +95,6 @@ export type Database = {
           created_at: string
           id: string
           media_url: string | null
-          poll_options: Json | null
-          poll_question: string | null
-          poll_votes: Json | null
           post_type: string
           updated_at: string
           user_id: string
@@ -107,9 +104,6 @@ export type Database = {
           created_at?: string
           id?: string
           media_url?: string | null
-          poll_options?: Json | null
-          poll_question?: string | null
-          poll_votes?: Json | null
           post_type: string
           updated_at?: string
           user_id: string
@@ -119,9 +113,6 @@ export type Database = {
           created_at?: string
           id?: string
           media_url?: string | null
-          poll_options?: Json | null
-          poll_question?: string | null
-          poll_votes?: Json | null
           post_type?: string
           updated_at?: string
           user_id?: string
