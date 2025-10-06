@@ -4,7 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import CreatePost from '@/components/CreatePost';
 import Feed from '@/components/Feed';
 import Sidebar from '@/components/Sidebar';
+import { AINewsFeed } from '@/components/AINewsFeed';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut } from 'lucide-react';
 import { toast } from 'sonner';
@@ -114,18 +116,35 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Feed */}
-          <div className="lg:col-span-8 space-y-6">
-            <CreatePost userId={user?.id} />
-            <Feed currentUserId={user?.id} />
-          </div>
+        <Tabs defaultValue="social" className="space-y-6">
+          <TabsList className="w-full max-w-md mx-auto grid grid-cols-2">
+            <TabsTrigger value="social">Social Feed</TabsTrigger>
+            <TabsTrigger value="ai-news">AI News</TabsTrigger>
+          </TabsList>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-4">
-            <Sidebar />
-          </div>
-        </div>
+          <TabsContent value="social">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8 space-y-6">
+                <CreatePost userId={user?.id} />
+                <Feed currentUserId={user?.id} />
+              </div>
+              <div className="lg:col-span-4">
+                <Sidebar />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ai-news">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8">
+                {user && <AINewsFeed userId={user.id} />}
+              </div>
+              <div className="lg:col-span-4">
+                <Sidebar />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

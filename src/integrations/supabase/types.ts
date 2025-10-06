@@ -89,6 +89,92 @@ export type Database = {
           },
         ]
       }
+      news_articles: {
+        Row: {
+          ai_topics: string[] | null
+          author: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          media_type: string | null
+          media_url: string | null
+          published_at: string | null
+          source_id: string | null
+          summary: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          url: string
+        }
+        Insert: {
+          ai_topics?: string[] | null
+          author?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          published_at?: string | null
+          source_id?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          url: string
+        }
+        Update: {
+          ai_topics?: string[] | null
+          author?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_type?: string | null
+          media_url?: string | null
+          published_at?: string | null
+          source_id?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_articles_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "news_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_sources: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          url: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          url?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string | null
@@ -151,6 +237,71 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      user_interactions: {
+        Row: {
+          article_id: string
+          created_at: string | null
+          id: string
+          interaction_type: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          feed_sort_preference: string | null
+          followed_topics: string[] | null
+          id: string
+          location: string | null
+          preferred_sources: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feed_sort_preference?: string | null
+          followed_topics?: string[] | null
+          id?: string
+          location?: string | null
+          preferred_sources?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feed_sort_preference?: string | null
+          followed_topics?: string[] | null
+          id?: string
+          location?: string | null
+          preferred_sources?: string[] | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

@@ -2,3 +2,9 @@ project_id = "ietdyalmqicbaeqewzdp"
 
 [functions.generate-hashtags]
 verify_jwt = false
+
+[functions.personalize-feed]
+verify_jwt = true
+
+[functions.seed-news]
+verify_jwt = false
