@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, Plus, Download } from 'lucide-react';
+import { Loader2, X, Plus, Download, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface NewsPreferencesProps {
@@ -137,6 +137,34 @@ export const NewsPreferences = ({ userId }: NewsPreferencesProps) => {
     }
   };
 
+  const fetchRealNews = async () => {
+    try {
+      setLoadingSample(true);
+      toast({
+        title: 'Fetching...',
+        description: 'Getting latest AI news from real sources',
+      });
+      
+      const { data, error } = await supabase.functions.invoke('fetch-real-news');
+      
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Fetched ${data.fetched} articles, added ${data.inserted} new ones`,
+      });
+    } catch (error) {
+      console.error('Error fetching real news:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch real news',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingSample(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -152,25 +180,44 @@ export const NewsPreferences = ({ userId }: NewsPreferencesProps) => {
         <p className="text-muted-foreground text-sm">
           Select topics you're interested in to get personalized AI news recommendations
         </p>
-        <Button
-          onClick={loadSampleArticles}
-          disabled={loadingSample}
-          variant="outline"
-          size="sm"
-          className="mt-3"
-        >
-          {loadingSample ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Load Sample Articles
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2 mt-3">
+          <Button
+            onClick={fetchRealNews}
+            disabled={loadingSample}
+            size="sm"
+            className="flex-1"
+          >
+            {loadingSample ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Fetching...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Fetch Latest AI News
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={loadSampleArticles}
+            disabled={loadingSample}
+            variant="outline"
+            size="sm"
+          >
+            {loadingSample ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Samples
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
