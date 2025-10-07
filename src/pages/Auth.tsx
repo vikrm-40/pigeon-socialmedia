@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import pigeonLogo from '@/assets/pigeon-logo.jpeg';
 import { signUpSchema, signInSchema } from '@/lib/validations';
+import { logAuditEvent } from '@/lib/auditLogger';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -42,6 +43,13 @@ const Auth = () => {
           password: formData.password,
         });
         if (error) throw error;
+        
+        // Log successful login
+        await logAuditEvent({ 
+          eventType: 'login',
+          eventDetails: { method: 'email_password' }
+        });
+        
         toast.success('Welcome back!');
       } else {
         // Validate sign-up data
@@ -66,6 +74,8 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        
+        // Log successful signup (login event will be logged on first login)
         toast.success('Account created! Welcome to the community!');
       }
       navigate('/');
@@ -87,6 +97,12 @@ const Auth = () => {
         },
       });
       if (error) throw error;
+      
+      // Note: Audit log will be created on redirect callback
+      await logAuditEvent({ 
+        eventType: 'login',
+        eventDetails: { method: provider }
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Social login failed';
       toast.error(errorMessage);

@@ -16,6 +16,7 @@ import {
   sanitizeText, 
   detectSpamPatterns 
 } from '@/lib/sanitization';
+import { logAuditEvent } from '@/lib/auditLogger';
 
 type PostType = 'text' | 'image' | 'video';
 
@@ -133,6 +134,12 @@ const CreatePost = ({ userId }: CreatePostProps) => {
 
       const { error } = await supabase.from('posts').insert(postData);
       if (error) throw error;
+
+      // Log post creation
+      await logAuditEvent({
+        eventType: 'post_create',
+        eventDetails: { post_type: postType, has_media: !!mediaUrl }
+      });
 
       // Reset form
       setContent('');

@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.seed-news]
 verify_jwt = false
+
+[functions.export-user-data]
+verify_jwt = true
+
+[functions.detect-anomalies]
+verify_jwt = true

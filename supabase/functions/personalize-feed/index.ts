@@ -20,9 +20,9 @@ serve(async (req) => {
     
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabase.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
-    if (!user) {
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -30,6 +30,31 @@ serve(async (req) => {
     }
 
     const { limit = 20, offset = 0, sortBy = 'relevance' } = await req.json();
+
+    // Check privacy settings
+    const { data: privacySettings } = await supabase
+      .from('privacy_settings')
+      .select('allow_personalization')
+      .eq('user_id', user.id)
+      .single();
+
+    // If personalization is disabled, return articles without personalization
+    if (privacySettings && !privacySettings.allow_personalization) {
+      const { data: articles, error: articlesError } = await supabase
+        .from('news_articles')
+        .select(`
+          *,
+          news_sources(name, category)
+        `)
+        .order('published_at', { ascending: false })
+        .limit(limit);
+
+      if (articlesError) throw articlesError;
+
+      return new Response(JSON.stringify({ articles: articles || [], hasMore: false }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Fetch user preferences
     const { data: preferences } = await supabase

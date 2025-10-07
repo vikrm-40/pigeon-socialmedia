@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          created_at: string
+          event_details: Json | null
+          event_type: Database["public"]["Enums"]["audit_event_type"]
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_details?: Json | null
+          event_type: Database["public"]["Enums"]["audit_event_type"]
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_details?: Json | null
+          event_type?: Database["public"]["Enums"]["audit_event_type"]
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -52,6 +82,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      data_deletion_requests: {
+        Row: {
+          id: string
+          notes: string | null
+          processed_at: string | null
+          requested_at: string
+          status: Database["public"]["Enums"]["deletion_status"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["deletion_status"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: Database["public"]["Enums"]["deletion_status"]
+          user_id?: string
+        }
+        Relationships: []
       }
       likes: {
         Row: {
@@ -213,6 +270,39 @@ export type Database = {
           },
         ]
       }
+      privacy_settings: {
+        Row: {
+          allow_analytics: boolean | null
+          allow_data_sharing: boolean | null
+          allow_personalization: boolean | null
+          created_at: string
+          data_retention_days: number | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_analytics?: boolean | null
+          allow_data_sharing?: boolean | null
+          allow_personalization?: boolean | null
+          created_at?: string
+          data_retention_days?: number | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_analytics?: boolean | null
+          allow_data_sharing?: boolean | null
+          allow_personalization?: boolean | null
+          created_at?: string
+          data_retention_days?: number | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -313,7 +403,20 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      audit_event_type:
+        | "login"
+        | "logout"
+        | "profile_update"
+        | "post_create"
+        | "post_update"
+        | "post_delete"
+        | "comment_create"
+        | "comment_delete"
+        | "data_export"
+        | "data_deletion_request"
+        | "privacy_settings_update"
+        | "suspicious_activity"
+      deletion_status: "pending" | "processing" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -440,6 +543,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      audit_event_type: [
+        "login",
+        "logout",
+        "profile_update",
+        "post_create",
+        "post_update",
+        "post_delete",
+        "comment_create",
+        "comment_delete",
+        "data_export",
+        "data_deletion_request",
+        "privacy_settings_update",
+        "suspicious_activity",
+      ],
+      deletion_status: ["pending", "processing", "completed", "cancelled"],
+    },
   },
 } as const
