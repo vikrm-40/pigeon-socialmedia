@@ -79,6 +79,8 @@ export const NewsPreferences = ({ userId }: NewsPreferencesProps) => {
           user_id: userId,
           followed_topics: followedTopics,
           location,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
