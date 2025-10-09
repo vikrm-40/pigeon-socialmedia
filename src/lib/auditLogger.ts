@@ -4,6 +4,8 @@ export type AuditEventType =
   | 'login'
   | 'logout'
   | 'profile_update'
+  | 'profile_updated'
+  | 'profile_avatar_updated'
   | 'post_create'
   | 'post_update'
   | 'post_delete'

@@ -416,6 +416,8 @@ export type Database = {
         | "data_deletion_request"
         | "privacy_settings_update"
         | "suspicious_activity"
+        | "profile_updated"
+        | "profile_avatar_updated"
       deletion_status: "pending" | "processing" | "completed" | "cancelled"
     }
     CompositeTypes: {
@@ -557,6 +559,8 @@ export const Constants = {
         "data_deletion_request",
         "privacy_settings_update",
         "suspicious_activity",
+        "profile_updated",
+        "profile_avatar_updated",
       ],
       deletion_status: ["pending", "processing", "completed", "cancelled"],
     },
