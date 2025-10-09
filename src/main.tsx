@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import Privacy from "./pages/Privacy.tsx";
+import Profile from "./pages/Profile.tsx";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
       { path: "/", element: <Index /> },
       { path: "/auth", element: <Auth /> },
       { path: "/privacy", element: <Privacy /> },
+      { path: "/profile", element: <Profile /> },
       { path: "*", element: <NotFound /> },
     ],
   },
